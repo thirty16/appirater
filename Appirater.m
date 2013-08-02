@@ -53,7 +53,7 @@ NSString *const kAppiraterReminderRequestDate		= @"kAppiraterReminderRequestDate
 NSString *templateReviewURL = @"itms-apps://ax.itunes.apple.com/WebObjects/MZStore.woa/wa/viewContentsUserReviews?type=Purple+Software&id=APP_ID";
 
 static NSString *_appId;
-static double _daysUntilPrompt = 30;
+static double _daysUntilPrompt = 30;  //YANN TAG : To change to a few days
 static NSInteger _usesUntilPrompt = 20;
 static NSInteger _significantEventsUntilPrompt = -1;
 static double _timeBeforeReminding = 1;
@@ -168,6 +168,16 @@ static BOOL _modalOpen = false;
 }
 
 - (void)showRatingAlert {
+    
+    // MixPanel :
+#if ENABLE_MIXPANEL_EVENTS
+    Mixpanel *mixpanel = [Mixpanel sharedInstance];
+    [mixpanel track:@"Show rating alert" properties:@{
+     @"UserID": [(Project3_AppDelegate *)[[UIApplication sharedApplication] delegate] UserIDLoggedIn]
+     }];
+#endif
+
+    
 	UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:APPIRATER_MESSAGE_TITLE
 														 message:APPIRATER_MESSAGE
 														delegate:self
@@ -483,6 +493,15 @@ static BOOL _modalOpen = false;
 	switch (buttonIndex) {
 		case 0:
 		{
+            // MixPanel :
+#if ENABLE_MIXPANEL_EVENTS
+            Mixpanel *mixpanel = [Mixpanel sharedInstance];
+            [mixpanel track:@"Don't want to rate" properties:@{
+             @"UserID": [(Project3_AppDelegate *)[[UIApplication sharedApplication] delegate] UserIDLoggedIn]
+             }];
+#endif
+
+            
 			// they don't want to rate it
 			[userDefaults setBool:YES forKey:kAppiraterDeclinedToRate];
 			[userDefaults synchronize];
@@ -493,6 +512,13 @@ static BOOL _modalOpen = false;
 		}
 		case 1:
 		{
+#if ENABLE_MIXPANEL_EVENTS
+            Mixpanel *mixpanel = [Mixpanel sharedInstance];
+            [mixpanel track:@"Want to rate" properties:@{
+             @"UserID": [(Project3_AppDelegate *)[[UIApplication sharedApplication] delegate] UserIDLoggedIn]
+             }];
+#endif
+            
 			// they want to rate it
 			[Appirater rateApp];
 			if(delegate&& [delegate respondsToSelector:@selector(appiraterDidOptToRate:)]){
@@ -501,6 +527,14 @@ static BOOL _modalOpen = false;
 			break;
 		}
 		case 2:
+            
+#if ENABLE_MIXPANEL_EVENTS
+            Mixpanel *mixpanel = [Mixpanel sharedInstance];
+            [mixpanel track:@"Remind them later" properties:@{
+             @"UserID": [(Project3_AppDelegate *)[[UIApplication sharedApplication] delegate] UserIDLoggedIn]
+             }];
+#endif
+            
 			// remind them later
 			[userDefaults setDouble:[[NSDate date] timeIntervalSince1970] forKey:kAppiraterReminderRequestDate];
 			[userDefaults synchronize];
